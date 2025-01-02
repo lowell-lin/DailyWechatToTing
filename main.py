@@ -4,14 +4,24 @@ import os
 import json
 from datetime import datetime, timedelta
 import requests
+import pytz
+from datetime import datetime
 
-nowtime = datetime.utcnow() + timedelta(hours=8)
+tz = pytz.timezone('Asia/Shanghai')
+nowtime = datetime.now(tz)
 today = datetime.strptime(str(nowtime.date()), "%Y-%m-%d")
 
 
 def get_time():
-    dictDate = {'Monday': '星期一', 'Tuesday': '星期二', 'Wednesday': '星期三', 'Thursday': '星期四',
-                'Friday': '星期五', 'Saturday': '星期六', 'Sunday': '星期天'}
+    dictDate = {
+        'Monday': '星期一',
+        'Tuesday': '星期二',
+        'Wednesday': '星期三',
+        'Thursday': '星期四',
+        'Friday': '星期五',
+        'Saturday': '星期六',
+        'Sunday': '星期天'
+    }
     a = dictDate[nowtime.strftime('%A')]
     return nowtime.strftime("%Y年%m月%d日") + a
 
@@ -23,6 +33,7 @@ def get_words():
         return get_words()
     return words['data']['hitokoto']
 
+
 def get_weather(city, key):
     url = f"https://api.seniverse.com/v3/weather/daily.json?key={key}&location={city}&language=zh-Hans&unit=c&start=-1&days=5"
     res = requests.get(url).json()
@@ -30,6 +41,7 @@ def get_weather(city, key):
     weather = (res['results'][0])["daily"][0]
     city = (res['results'][0])["location"]["name"]
     return city, weather
+
 
 def get_count(born_date):
     delta = today - datetime.strptime(born_date, "%Y-%m-%d")
@@ -44,10 +56,14 @@ def get_birthday(birthday):
 
 
 if __name__ == '__main__':
-    app_id = os.getenv("APP_ID")
-    app_secret = os.getenv("APP_SECRET")
-    template_id = os.getenv("TEMPLATE_ID")
-    weather_key = os.getenv("WEATHER_API_KEY")
+    # app_id = os.getenv("APP_ID")
+    app_id = "wx9c9ce32f0cd56900"
+    # app_secret = os.getenv("APP_SECRET")
+    app_secret = "15715b9f67c1d856afc32c11c7a0a2c3"
+    # template_id = os.getenv("TEMPLATE_ID")
+    template_id = "C4rF5oL9cF8ZdVK5mlIoV2LPrqzHqvdWKzIeAyW2GI8"
+    # weather_key = os.getenv("WEATHER_API_KEY")
+    weather_key = "SfNuCvlskOuT5_ixh"
 
     client = WeChatClient(app_id, app_secret)
     wm = WeChatMessage(client)
@@ -57,9 +73,8 @@ if __name__ == '__main__':
     f.close()
     data = js_text['data']
     num = 0
-    words=get_words()
-    out_time=get_time()
-
+    words = get_words()
+    out_time = get_time()
     print(words, out_time)
 
     for user_info in data:
@@ -69,8 +84,7 @@ if __name__ == '__main__':
         user_id = user_info['user_id']
         name = user_info['user_name'].upper()
 
-
-        wea_city,weather = get_weather(city,weather_key)
+        wea_city, weather = get_weather(city, weather_key)
         data = dict()
         data['time'] = {'value': out_time}
         data['words'] = {'value': words}
